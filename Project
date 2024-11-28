@@ -1,0 +1,108 @@
+-- Creating Database aircargo and connecting to it
+CREATE DATABASE aircargo;
+\c aircargo;
+
+-- ===========================================
+-- Creating Table: routes_details
+-- ===========================================
+CREATE TABLE routes_details (
+  route_id INT NOT NULL,
+  flight_num INT NOT NULL,
+  origin_airport VARCHAR(3) NOT NULL,
+  destination_airport VARCHAR(100) NOT NULL,
+  aircraft_id VARCHAR(100) NOT NULL,
+  distance_miles INT NOT NULL,
+  PRIMARY KEY (route_id),
+  CONSTRAINT Flight_number_check CHECK (SUBSTRING(CAST(flight_num AS TEXT) FROM 1 FOR 2) = '11'),
+  CONSTRAINT routes_chk_1 CHECK (distance_miles > 0)
+);
+
+-- ===========================================
+-- Query: Display all ticket details
+-- ===========================================
+SELECT * FROM ticket_details;
+
+-- ===========================================
+-- Query: Passengers on routes 01 to 25
+-- ===========================================
+SELECT * FROM passengers_on_flights WHERE route_id BETWEEN 1 AND 25;
+
+-- ===========================================
+-- Query: Display all passengers on flights
+-- ===========================================
+SELECT * FROM passengers_on_flights;
+
+-- ===========================================
+-- Query: Business class passengers and revenue
+-- ===========================================
+SELECT COUNT(customer_id) AS "NO. OF PASSENGERS", 
+       SUM(price_per_ticket) AS REVENUE
+FROM ticket_details
+WHERE class_id = 'Business';
+
+-- ===========================================
+-- Query: Full name of customers
+-- ===========================================
+SELECT customer_id, 
+       CONCAT(first_name, ' ', last_name) AS "FULL NAME", 
+       date_of_birth, 
+       gender
+FROM customer;
+
+-- ===========================================
+-- Query: Customers who registered and booked tickets
+-- ===========================================
+SELECT c.customer_id, 
+       CONCAT(c.first_name, ' ', c.last_name) AS Name, 
+       COUNT(t.no_of_tickets) AS Total_Tickets_Booked
+FROM customer c
+JOIN ticket_details t ON c.customer_id = t.customer_id
+GROUP BY c.customer_id, Name
+ORDER BY Total_Tickets_Booked DESC;
+
+-- ===========================================
+-- Query: Customers by brand (Emirates)
+-- ===========================================
+SELECT c.first_name, 
+       c.last_name, 
+       c.customer_id
+FROM customer c
+JOIN ticket_details t ON c.customer_id = t.customer_id
+WHERE t.brand = 'Emirates'
+GROUP BY c.customer_id, c.first_name, c.last_name;
+
+-- ===========================================
+-- Query: Customers in Economy Plus class
+-- ===========================================
+SELECT customer_id, 
+       class_id
+FROM passengers_on_flights
+GROUP BY customer_id, class_id
+HAVING class_id = 'Economy Plus';
+
+-- ===========================================
+-- Query: Revenue status using CASE
+-- ===========================================
+SELECT CASE
+           WHEN SUM(no_of_tickets * price_per_ticket) > 10000 THEN 'Revenue Crossed 10000'
+           ELSE 'Revenue Less Than 10000'
+       END AS Revenue_Status
+FROM ticket_details;
+
+-- ===========================================
+-- Creating a new user and granting access
+-- ===========================================
+CREATE USER AD WITH PASSWORD 'password';
+GRANT ALL PRIVILEGES ON DATABASE aircargo TO AD;
+
+-- ===========================================
+-- Query: Maximum ticket price by class
+-- ===========================================
+SELECT DISTINCT class_id, 
+       MAX(price_per_ticket) OVER (PARTITION BY class_id) AS Max_Class_Price
+FROM ticket_details;
+
+-- ===========================================
+-- Query: Passengers on route ID 4
+-- ===========================================
+SELECT * FROM passengers_on_flights WHERE route_id = 4;
