@@ -25,7 +25,7 @@ SELECT * FROM ticket_details;
 -- ===========================================
 -- Query: Passengers on routes 01 to 25
 -- ===========================================
-SELECT * FROM passengers_on_flights WHERE route_id BETWEEN 1 AND 25;
+SELECT * FROM passengers_on_flights ;
 
 -- ===========================================
 -- Query: Display all passengers on flights
