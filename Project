@@ -23,7 +23,7 @@ CREATE TABLE routes_details (
 SELECT * FROM ticket_details;
 
 -- ===========================================
--- Query: Passengers on routes 01 to 25
+-- Query: Passengers on routes 
 -- ===========================================
 SELECT * FROM passengers_on_flights ;
 
