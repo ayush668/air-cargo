@@ -109,6 +109,8 @@ FROM ticket_details;
 -- ===========================================
 SELECT * FROM passengers_on_flights WHERE route_id = 4;
 
+--top 10% contributed 50% of sales.
+
 -- Step 1: Calculate total sales
 WITH total_sales AS (
     SELECT SUM(price_per_ticket * no_of_tickets) AS total_revenue
