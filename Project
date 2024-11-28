@@ -102,7 +102,59 @@ SELECT DISTINCT class_id,
        MAX(price_per_ticket) OVER (PARTITION BY class_id) AS Max_Class_Price
 FROM ticket_details;
 
+
+
 -- ===========================================
 -- Query: Passengers on route ID 4
 -- ===========================================
 SELECT * FROM passengers_on_flights WHERE route_id = 4;
+
+-- Step 1: Calculate total sales
+WITH total_sales AS (
+    SELECT SUM(price_per_ticket * no_of_tickets) AS total_revenue
+    FROM ticket_details
+),
+
+-- Step 2: Rank customers by total revenue contribution
+ranked_sales AS (
+    SELECT customer_id,
+           CONCAT(c.first_name, ' ', c.last_name) AS customer_name,
+           SUM(price_per_ticket * no_of_tickets) AS total_customer_revenue,
+           RANK() OVER (ORDER BY SUM(price_per_ticket * no_of_tickets) DESC) AS revenue_rank
+    FROM ticket_details t
+    JOIN customer c ON t.customer_id = c.customer_id
+    GROUP BY customer_id, c.first_name, c.last_name
+)
+
+-- Step 3: Identify top 10% of customers who contribute to 50% of total sales
+SELECT rs.customer_id, 
+       rs.customer_name,
+       rs.total_customer_revenue,
+       ts.total_revenue,
+       (rs.total_customer_revenue * 100.0 / ts.total_revenue) AS percentage_of_total_sales
+FROM ranked_sales rs
+JOIN total_sales ts ON 1=1
+WHERE rs.revenue_rank <= (SELECT COUNT(*) * 0.1 FROM ranked_sales)
+  AND rs.total_customer_revenue >= (ts.total_revenue * 0.5);
+
+
+-- Query to find the busiest route overall, with specific interest in New York to Los Angeles
+SELECT rd.origin_airport,
+       rd.destination_airport,
+       COUNT(pf.customer_id) AS total_passengers
+FROM passengers_on_flights pf
+JOIN routes_details rd ON pf.route_id = rd.route_id
+GROUP BY rd.origin_airport, rd.destination_airport
+ORDER BY total_passengers DESC
+LIMIT 1;
+
+
+-- Query to find the average price of Economy Class tickets and the price of Business Class tickets
+SELECT route_id,
+       AVG(CASE WHEN class_id = 'Economy' THEN price_per_ticket END) AS avg_economy_price,
+       MAX(CASE WHEN class_id = 'Business' THEN price_per_ticket END) AS business_class_price
+FROM ticket_details
+JOIN routes_details rd ON ticket_details.route_id = rd.route_id
+WHERE rd.origin_airport = 'JFK' AND rd.destination_airport = 'LAX'
+GROUP BY route_id;
+
