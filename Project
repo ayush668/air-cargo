@@ -90,12 +90,6 @@ SELECT CASE
 FROM ticket_details;
 
 -- ===========================================
--- Creating a new user and granting access
--- ===========================================
-CREATE USER AD WITH PASSWORD 'password';
-GRANT ALL PRIVILEGES ON DATABASE aircargo TO AD;
-
--- ===========================================
 -- Query: Maximum ticket price by class
 -- ===========================================
 SELECT DISTINCT class_id, 
